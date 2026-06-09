@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Admin — Video Carousel</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#f3eeff;
+  --surface:#ffffff;
+  --border:#ddd0f7;
+  --accent:#9644ed;
+  --accent-hover:#7c2fd4;
+  --accent-light:#f0e6ff;
+  --danger:#dc2626;
+  --text:#1a0d2e;
+  --muted:#7a6a90;
+  --radius:12px;
+  --shadow:0 1px 4px rgba(150,68,237,0.08),0 4px 16px rgba(150,68,237,0.07);
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* ── TOP BAR ── */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--accent);padding:0 24px;height:58px;
+  box-shadow:0 2px 12px rgba(150,68,237,0.3);
+  position:sticky;top:0;z-index:100;
+}
+.topbar-left{display:flex;align-items:center;gap:10px;}
+.topbar h1{font-size:1rem;font-weight:700;color:#fff;letter-spacing:-0.01em;}
+.topbar-badge{
+  font-size:0.7rem;font-weight:700;padding:2px 10px;border-radius:20px;
+  background:rgba(255,255,255,0.2);color:#fff;letter-spacing:0.04em;text-transform:uppercase;
+}
+.btn-logout{
+  display:flex;align-items:center;gap:6px;padding:7px 16px;border-radius:8px;
+  border:1px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.12);
+  color:#fff;font-size:0.82rem;font-weight:500;cursor:pointer;
+  font-family:inherit;transition:background 0.15s;
+}
+.btn-logout:hover{background:rgba(255,255,255,0.22);}
+
+/* ── LOGIN WALL ── */
+#login-wall{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:calc(100vh - 58px);padding:24px;
+}
+.login-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:20px;
+  padding:44px 40px;width:100%;max-width:400px;
+  box-shadow:0 8px 40px rgba(150,68,237,0.15);text-align:center;
+}
+.login-icon{
+  width:60px;height:60px;border-radius:16px;background:var(--accent-light);
+  display:flex;align-items:center;justify-content:center;margin:0 auto 20px;
+}
+.login-card h2{font-size:1.25rem;font-weight:700;margin-bottom:6px;}
+.login-card p{font-size:0.85rem;color:var(--muted);margin-bottom:28px;}
+.input-field{
+  width:100%;padding:11px 15px;border:1.5px solid var(--border);border-radius:9px;
+  font-size:0.9rem;font-family:inherit;outline:none;transition:border-color 0.15s;
+  background:#faf7ff;color:var(--text);
+}
+.input-field:focus{border-color:var(--accent);background:#fff;}
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:11px 22px;border-radius:9px;font-size:0.88rem;font-weight:600;
+  cursor:pointer;border:none;transition:all 0.15s;font-family:inherit;
+}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{background:var(--accent-hover);}
+.btn-ghost{background:none;border:1.5px solid var(--border);color:var(--muted);}
+.btn-ghost:hover{background:var(--bg);color:var(--text);}
+.btn-full{width:100%;margin-top:14px;}
+.error-msg{
+  font-size:0.82rem;color:var(--danger);background:#fef2f2;
+  border:1px solid #fecaca;border-radius:7px;padding:9px 13px;
+  margin-top:12px;display:none;text-align:left;
+}
+.error-msg.show{display:block;}
+
+/* ── ADMIN PANEL ── */
+#admin-panel{display:none;max-width:860px;margin:0 auto;padding:32px 24px 60px;}
+.section-title{font-size:1.1rem;font-weight:700;margin-bottom:4px;}
+.section-sub{font-size:0.82rem;color:var(--muted);margin-bottom:24px;}
+
+/* Add panel */
+.add-panel{
+  background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);
+  padding:24px;margin-bottom:28px;box-shadow:var(--shadow);
+}
+.add-panel-title{
+  font-size:0.88rem;font-weight:600;margin-bottom:16px;
+  display:flex;align-items:center;gap:8px;color:var(--text);
+}
+.tab-pills{display:flex;gap:6px;margin-bottom:18px;}
+.pill{
+  padding:5px 16px;border-radius:20px;border:1.5px solid var(--border);
+  font-size:0.8rem;font-weight:500;cursor:pointer;background:none;color:var(--muted);
+  font-family:inherit;transition:all 0.15s;
+}
+.pill.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.add-form{display:flex;gap:10px;flex-wrap:wrap;}
+.add-form .input-field{flex:1;min-width:200px;}
+.upload-zone{
+  border:2px dashed var(--border);border-radius:10px;padding:28px 20px;
+  text-align:center;cursor:pointer;transition:all 0.15s;background:var(--bg);
+}
+.upload-zone:hover,.upload-zone.drag-over{
+  border-color:var(--accent);background:var(--accent-light);
+}
+.upload-zone svg{opacity:0.4;margin-bottom:10px;}
+.upload-zone p{font-size:0.85rem;color:var(--muted);}
+.upload-zone span{color:var(--accent);font-weight:600;cursor:pointer;}
+.upload-zone small{display:block;margin-top:5px;font-size:0.74rem;color:var(--muted);}
+#file-input-admin{display:none;}
+
+/* Video list */
+.list-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+.list-header h3{font-size:0.9rem;font-weight:600;}
+.vcount{font-size:0.78rem;color:var(--muted);}
+.video-list{display:flex;flex-direction:column;gap:10px;}
+.video-item{
+  background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);
+  padding:13px 16px;display:flex;align-items:center;gap:13px;
+  box-shadow:var(--shadow);transition:border-color 0.15s;cursor:grab;
+}
+.video-item:hover{border-color:var(--accent);}
+.video-item:active{cursor:grabbing;}
+.drag-handle{color:var(--border);flex-shrink:0;}
+.thumb-mini{
+  width:80px;height:50px;border-radius:7px;overflow:hidden;
+  background:#1a0d2e;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+}
+.thumb-mini video{width:100%;height:100%;object-fit:cover;display:block;}
+.vinfo{flex:1;min-width:0;}
+.vname{font-size:0.87rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.vsub{font-size:0.73rem;color:var(--muted);margin-top:3px;}
+.icon-btn{
+  width:32px;height:32px;border-radius:7px;border:1.5px solid var(--border);
+  background:none;color:var(--muted);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:all 0.15s;flex-shrink:0;
+}
+.icon-btn.del:hover{background:#fef2f2;color:var(--danger);border-color:#fecaca;}
+.empty-list{
+  text-align:center;padding:40px 20px;color:var(--muted);
+  border:1.5px dashed var(--border);border-radius:var(--radius);
+  background:var(--surface);
+}
+.empty-list svg{opacity:0.25;margin-bottom:10px;}
+.empty-list p{font-size:0.85rem;line-height:1.6;}
+
+/* Generate button */
+.generate-bar{
+  margin-top:32px;padding:24px;
+  background:linear-gradient(135deg,#9644ed15,#c084fc15);
+  border:1.5px solid var(--border);border-radius:var(--radius);
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  flex-wrap:wrap;
+}
+.generate-bar-text h3{font-size:0.95rem;font-weight:700;}
+.generate-bar-text p{font-size:0.8rem;color:var(--muted);margin-top:3px;}
+.btn-generate{
+  display:flex;align-items:center;gap:8px;padding:12px 24px;
+  border-radius:10px;border:none;background:var(--accent);color:#fff;
+  font-size:0.9rem;font-weight:700;cursor:pointer;font-family:inherit;
+  transition:all 0.15s;box-shadow:0 4px 14px rgba(150,68,237,0.35);
+  white-space:nowrap;
+}
+.btn-generate:hover{background:var(--accent-hover);box-shadow:0 4px 18px rgba(150,68,237,0.45);}
+.btn-generate:disabled{opacity:0.45;cursor:not-allowed;box-shadow:none;}
+
+/* toast */
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(60px);
+  background:#1a0d2e;color:#fff;padding:11px 22px;border-radius:9px;
+  font-size:0.83rem;font-weight:500;opacity:0;transition:all 0.3s;z-index:999;
+  white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,0.25);
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* loading overlay */
+.loading-overlay{
+  position:fixed;inset:0;background:rgba(26,13,46,0.6);backdrop-filter:blur(4px);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  z-index:9999;display:none;
+}
+.loading-overlay.show{display:flex;}
+.loading-box{
+  background:#fff;border-radius:16px;padding:36px 40px;text-align:center;
+  box-shadow:0 8px 40px rgba(0,0,0,0.2);
+}
+.spinner{
+  width:44px;height:44px;border:4px solid var(--border);
+  border-top-color:var(--accent);border-radius:50%;
+  animation:spin 0.8s linear infinite;margin:0 auto 16px;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading-box h3{font-size:1rem;font-weight:700;margin-bottom:6px;}
+.loading-box p{font-size:0.82rem;color:var(--muted);}
+
+@media(max-width:540px){
+  .add-form{flex-direction:column;}
+  #admin-panel{padding:20px 14px 40px;}
+  .generate-bar{flex-direction:column;align-items:flex-start;}
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M15 10l4.553-2.069A1 1 0 0 1 21 8.845v6.31a1 1 0 0 1-1.447.894L15 14"/><rect x="2" y="6" width="13" height="12" rx="2"/></svg>
+    <h1>Video Carousel</h1>
+    <span class="topbar-badge">Admin</span>
+  </div>
+  <button class="btn-logout" id="btn-logout" style="display:none" onclick="logout()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    Log out
+  </button>
+</div>
+
+<!-- LOGIN WALL -->
+<div id="login-wall">
+  <div class="login-card">
+    <div class="login-icon">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#9644ed" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    </div>
+    <h2>Instructor Login</h2>
+    <p>Enter your admin password to manage course videos</p>
+    <input class="input-field" type="password" id="pw-input" placeholder="Enter password" />
+    <div class="error-msg" id="pw-error">Incorrect password. Please try again.</div>
+    <button class="btn btn-primary btn-full" onclick="tryLogin()">Unlock Panel</button>
+    <p style="margin-top:18px;font-size:0.74rem;color:var(--muted);">Default password: <strong>admin123</strong><br>Change it on line 1 of the &lt;script&gt;</p>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="admin-panel">
+  <p class="section-title">Manage Videos</p>
+  <p class="section-sub">Add, reorder, or remove videos. When ready, generate the student file.</p>
+
+  <!-- Add Video -->
+  <div class="add-panel">
+    <div class="add-panel-title">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9644ed" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      Add a Video
+    </div>
+    <div class="tab-pills">
+      <button class="pill active" id="pill-url" onclick="switchAddTab('url')">🔗 Paste URL</button>
+      <button class="pill" id="pill-file" onclick="switchAddTab('file')">📁 Upload File</button>
+    </div>
+
+    <!-- URL -->
+    <div id="add-url-tab">
+      <div class="add-form">
+        <input class="input-field" id="url-input" type="url" placeholder="https://… direct video URL, or YouTube/Vimeo link"/>
+        <input class="input-field" id="url-title" type="text" placeholder="Title (optional)" style="max-width:220px;"/>
+        <button class="btn btn-primary" onclick="addFromURL()">Add</button>
+      </div>
+      <p style="font-size:0.74rem;color:var(--muted);margin-top:9px;">Supports .mp4/.webm direct links, YouTube, and Vimeo.</p>
+    </div>
+
+    <!-- File -->
+    <div id="add-file-tab" style="display:none">
+      <div class="upload-zone" id="upload-zone">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <p><span onclick="document.getElementById('file-input-admin').click()">Click to upload</span> or drag & drop</p>
+        <small>MP4, WebM, MOV — multiple files supported. Large files take a few seconds to load.</small>
+      </div>
+      <input type="file" id="file-input-admin" accept="video/*" multiple/>
+    </div>
+  </div>
+
+  <!-- Video List -->
+  <div class="list-header">
+    <h3>Playlist <span class="vcount" id="vcount"></span></h3>
+    <button class="btn btn-ghost" id="clear-btn" style="display:none;font-size:0.8rem;padding:6px 14px;" onclick="clearAll()">Clear all</button>
+  </div>
+  <div id="admin-empty" class="empty-list">
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M15 10l4.553-2.069A1 1 0 0 1 21 8.845v6.31a1 1 0 0 1-1.447.894L15 14"/><rect x="2" y="6" width="13" height="12" rx="2"/></svg>
+    <p>No videos yet.<br>Add your first video above.</p>
+  </div>
+  <div class="video-list" id="video-list"></div>
+
+  <!-- Generate -->
+  <div class="generate-bar">
+    <div class="generate-bar-text">
+      <h3>Ready to publish?</h3>
+      <p>Generate the student file with your videos baked in — no admin controls, no upload buttons.</p>
+    </div>
+    <button class="btn-generate" id="btn-generate" onclick="generateStudentFile()" disabled>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+      Generate student.html
+    </button>
+  </div>
+</div>
+
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loading-overlay">
+  <div class="loading-box">
+    <div class="spinner"></div>
+    <h3>Generating student file…</h3>
+    <p>Embedding videos, please wait.</p>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+const ADMIN_PASSWORD = 'admin123'; // ← change this!
+
+let videos = []; // { id, name, url, type }
+let dragSrc = null;
+
+function uid(){ return Math.random().toString(36).slice(2,9); }
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),2600);
+}
+
+// ── Login ──
+function tryLogin(){
+  const pw=document.getElementById('pw-input').value;
+  const err=document.getElementById('pw-error');
+  if(pw===ADMIN_PASSWORD){
+    document.getElementById('login-wall').style.display='none';
+    document.getElementById('admin-panel').style.display='block';
+    document.getElementById('btn-logout').style.display='flex';
+    err.classList.remove('show');
+    renderList();
+  } else {
+    err.classList.add('show');
+    document.getElementById('pw-input').value='';
+    document.getElementById('pw-input').focus();
+  }
+}
+function logout(){
+  document.getElementById('login-wall').style.display='flex';
+  document.getElementById('admin-panel').style.display='none';
+  document.getElementById('btn-logout').style.display='none';
+  document.getElementById('pw-input').value='';
+}
+document.getElementById('pw-input').addEventListener('keydown',e=>{ if(e.key==='Enter') tryLogin(); });
+
+// ── Add tab ──
+function switchAddTab(t){
+  document.getElementById('add-url-tab').style.display = t==='url'?'block':'none';
+  document.getElementById('add-file-tab').style.display = t==='file'?'block':'none';
+  document.getElementById('pill-url').classList.toggle('active',t==='url');
+  document.getElementById('pill-file').classList.toggle('active',t==='file');
+}
+
+// ── Add from URL ──
+function addFromURL(){
+  const raw=document.getElementById('url-input').value.trim();
+  const title=document.getElementById('url-title').value.trim();
+  if(!raw){ toast('Please enter a URL'); return; }
+  let url=raw, type='url';
+  let name=title||raw.split('/').pop().split('?')[0]||'Untitled';
+  const yt=raw.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&?/]+)/);
+  if(yt){ url=`https://www.youtube.com/embed/${yt[1]}`; type='embed'; name=title||'YouTube Video'; }
+  const vm=raw.match(/vimeo\.com\/(\d+)/);
+  if(vm){ url=`https://player.vimeo.com/video/${vm[1]}`; type='embed'; name=title||'Vimeo Video'; }
+  videos.push({id:uid(),name,url,type});
+  document.getElementById('url-input').value='';
+  document.getElementById('url-title').value='';
+  toast(`"${name}" added`);
+  renderList();
+}
+
+// ── File upload ──
+document.getElementById('file-input-admin').addEventListener('change',e=>handleFiles(e.target.files));
+const uz=document.getElementById('upload-zone');
+uz.addEventListener('dragover',e=>{e.preventDefault();uz.classList.add('drag-over');});
+uz.addEventListener('dragleave',()=>uz.classList.remove('drag-over'));
+uz.addEventListener('drop',e=>{e.preventDefault();uz.classList.remove('drag-over');handleFiles(e.dataTransfer.files);});
+
+function handleFiles(fileList){
+  const files=Array.from(fileList).filter(f=>f.type.startsWith('video/'));
+  if(!files.length){ toast('No valid video files found'); return; }
+  let loaded=0;
+  toast('Loading video'+(files.length>1?'s':'')+'…');
+  files.forEach(f=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      videos.push({id:uid(),name:f.name,url:e.target.result,type:'file'});
+      loaded++;
+      if(loaded===files.length){ toast(`${loaded} video${loaded>1?'s':''} added`); renderList(); }
+    };
+    reader.onerror=()=>{ loaded++; toast('Failed: '+f.name); if(loaded===files.length) renderList(); };
+    reader.readAsDataURL(f);
+  });
+}
+
+// ── Remove / clear ──
+function removeVideo(id){
+  videos=videos.filter(x=>x.id!==id);
+  renderList(); toast('Video removed');
+}
+function clearAll(){
+  if(!confirm('Remove all videos?')) return;
+  videos=[]; renderList();
+}
+
+// ── Drag reorder ──
+function onDragStart(e,id){ dragSrc=id; e.dataTransfer.effectAllowed='move'; }
+function onDragOver(e,id){
+  e.preventDefault(); if(dragSrc===id) return;
+  const fi=videos.findIndex(x=>x.id===dragSrc);
+  const ti=videos.findIndex(x=>x.id===id);
+  if(fi<0||ti<0) return;
+  [videos[fi],videos[ti]]=[videos[ti],videos[fi]];
+  renderList();
+}
+function onDragEnd(){ dragSrc=null; }
+
+// ── Render list ──
+function renderList(){
+  const listEl=document.getElementById('video-list');
+  const emptyEl=document.getElementById('admin-empty');
+  const vcnt=document.getElementById('vcount');
+  const clrBtn=document.getElementById('clear-btn');
+  const genBtn=document.getElementById('btn-generate');
+
+  vcnt.textContent=videos.length?`(${videos.length})`:'';
+  clrBtn.style.display=videos.length?'inline-flex':'none';
+  genBtn.disabled=videos.length===0;
+
+  if(!videos.length){ emptyEl.style.display='block'; listEl.innerHTML=''; return; }
+  emptyEl.style.display='none';
+  listEl.innerHTML='';
+
+  videos.forEach((v,i)=>{
+    const item=document.createElement('div');
+    item.className='video-item';
+    item.draggable=true;
+    item.addEventListener('dragstart',e=>onDragStart(e,v.id));
+    item.addEventListener('dragover',e=>onDragOver(e,v.id));
+    item.addEventListener('dragend',onDragEnd);
+
+    // drag handle
+    const dh=document.createElement('div');
+    dh.className='drag-handle';
+    dh.innerHTML=`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="18" x2="16" y2="18"/></svg>`;
+    item.appendChild(dh);
+
+    // thumb
+    const thumb=document.createElement('div');
+    thumb.className='thumb-mini';
+    if(v.type==='embed'){
+      thumb.innerHTML=`<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>`;
+    } else {
+      const vel=document.createElement('video');
+      vel.src=v.url; vel.muted=true; vel.currentTime=1;
+      thumb.appendChild(vel);
+    }
+    item.appendChild(thumb);
+
+    // info
+    const info=document.createElement('div');
+    info.className='vinfo';
+    info.innerHTML=`<div class="vname">${v.name}</div><div class="vsub">#${i+1} · ${v.type==='embed'?'Embed':v.type==='url'?'URL':'Local file'}</div>`;
+    item.appendChild(info);
+
+    // delete
+    const del=document.createElement('button');
+    del.className='icon-btn del';
+    del.title='Remove';
+    del.innerHTML=`<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>`;
+    del.addEventListener('click',()=>removeVideo(v.id));
+    item.appendChild(del);
+
+    listEl.appendChild(item);
+  });
+}
+
+// ── Generate student.html ──
+function generateStudentFile(){
+  if(!videos.length){ toast('Add at least one video first'); return; }
+  document.getElementById('loading-overlay').classList.add('show');
+  setTimeout(()=>{
+    try{
+      const videosJSON=JSON.stringify(videos);
+      const html=buildStudentHTML(videosJSON);
+      const blob=new Blob([html],{type:'text/html'});
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);
+      a.download='student.html';
+      a.click();
+      URL.revokeObjectURL(a.href);
+      document.getElementById('loading-overlay').classList.remove('show');
+      toast('✅ student.html downloaded!');
+    } catch(e){
+      document.getElementById('loading-overlay').classList.remove('show');
+      toast('Error generating file: '+e.message);
+    }
+  },80);
+}
+
+function buildStudentHTML(videosJSON){
+return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Course Videos</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#f3eeff;
+  --surface:#fff;
+  --border:#ddd0f7;
+  --accent:#9644ed;
+  --accent-hover:#7c2fd4;
+  --text:#1a0d2e;
+  --muted:#7a6a90;
+  --radius:12px;
+  --shadow:0 1px 4px rgba(150,68,237,0.08),0 4px 16px rgba(150,68,237,0.07);
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+.topbar{
+  display:flex;align-items:center;gap:10px;
+  background:var(--accent);padding:0 24px;height:58px;
+  box-shadow:0 2px 12px rgba(150,68,237,0.3);
+}
+.topbar h1{font-size:1rem;font-weight:700;color:#fff;}
+.topbar-badge{font-size:0.7rem;font-weight:700;padding:2px 10px;border-radius:20px;background:rgba(255,255,255,0.2);color:#fff;letter-spacing:0.04em;text-transform:uppercase;}
+.wrap{max-width:860px;margin:0 auto;padding:32px 24px 60px;}
+.page-title{font-size:1.15rem;font-weight:700;margin-bottom:4px;}
+.page-sub{font-size:0.82rem;color:var(--muted);margin-bottom:28px;}
+.stage{position:relative;background:#000;border-radius:var(--radius);overflow:hidden;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow);}
+.stage video,.stage iframe{width:100%;height:100%;object-fit:contain;display:block;border:0;}
+.nav-btn{position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,0.15);color:#fff;width:42px;height:42px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10;transition:background 0.15s;}
+.nav-btn:hover{background:var(--accent);}
+.nav-btn.prev{left:14px;}
+.nav-btn.next{right:14px;}
+.vid-counter{position:absolute;top:12px;right:14px;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:3px 10px;font-size:0.72rem;color:rgba(255,255,255,0.75);z-index:10;}
+.vid-label{position:absolute;bottom:0;left:0;right:0;padding:40px 16px 14px;background:linear-gradient(transparent,rgba(0,0,0,0.65));font-size:0.8rem;color:rgba(255,255,255,0.85);pointer-events:none;opacity:0;transition:opacity 0.2s;}
+.stage:hover .vid-label{opacity:1;}
+.ctrl-bar{display:flex;align-items:center;gap:10px;margin-top:14px;}
+.ctrl-btn{width:34px;height:34px;border-radius:8px;background:var(--surface);border:1.5px solid var(--border);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;flex-shrink:0;}
+.ctrl-btn:hover,.ctrl-btn.on{background:var(--accent);border-color:var(--accent);color:#fff;}
+.prog-wrap{flex:1;display:flex;flex-direction:column;gap:4px;}
+.prog-bar{height:5px;background:var(--border);border-radius:99px;cursor:pointer;overflow:hidden;}
+.prog-fill{height:100%;background:var(--accent);border-radius:99px;width:0%;transition:width 0.1s linear;pointer-events:none;}
+.time-lbl{font-size:0.7rem;color:var(--muted);}
+.vol-wrap{display:flex;align-items:center;gap:7px;flex-shrink:0;}
+input[type=range].vol{-webkit-appearance:none;width:68px;height:4px;background:var(--border);border-radius:99px;cursor:pointer;outline:none;}
+input[type=range].vol::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:var(--accent);cursor:pointer;}
+.auto-lbl{display:flex;align-items:center;gap:6px;font-size:0.76rem;color:var(--muted);cursor:pointer;user-select:none;flex-shrink:0;}
+.auto-lbl input{display:none;}
+.tog{width:30px;height:17px;background:var(--border);border-radius:99px;position:relative;transition:background 0.2s;}
+.tog::after{content:'';position:absolute;top:2px;left:2px;width:13px;height:13px;background:#fff;border-radius:50%;transition:transform 0.2s;}
+.auto-lbl input:checked+.tog{background:var(--accent);}
+.auto-lbl input:checked+.tog::after{transform:translateX(13px);}
+.thumbs-row{display:flex;gap:9px;overflow-x:auto;padding:14px 0 4px;scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
+.thumbs-row::-webkit-scrollbar{height:4px;}
+.thumbs-row::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+.thumb{flex:0 0 110px;height:66px;border-radius:8px;overflow:hidden;cursor:pointer;border:2px solid transparent;transition:border-color 0.15s,transform 0.15s;background:#000;position:relative;}
+.thumb:hover{transform:scale(1.04);}
+.thumb.active{border-color:var(--accent);}
+.thumb video{width:100%;height:100%;object-fit:cover;pointer-events:none;}
+.thumb .embed-icon{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#1a0d2e;}
+.tname{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.55);font-size:0.65rem;color:rgba(255,255,255,0.85);padding:3px 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.dots{display:flex;justify-content:center;gap:6px;margin-top:14px;}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--border);cursor:pointer;transition:all 0.15s;}
+.dot.active{background:var(--accent);transform:scale(1.3);}
+@media(max-width:540px){.vol-wrap,.auto-lbl{display:none;}.thumb{flex:0 0 85px;height:52px;}.wrap{padding:20px 14px 40px;}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M15 10l4.553-2.069A1 1 0 0 1 21 8.845v6.31a1 1 0 0 1-1.447.894L15 14"/><rect x="2" y="6" width="13" height="12" rx="2"/></svg>
+  <h1>Course Videos</h1>
+  <span class="topbar-badge">Student</span>
+</div>
+<div class="wrap">
+  <p class="page-title">Your Lessons</p>
+  <p class="page-sub">Watch the videos your instructor has prepared for you</p>
+  <div class="stage" id="stage">
+    <button class="nav-btn prev" id="btn-prev"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>
+    <button class="nav-btn next" id="btn-next"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></button>
+    <div class="vid-counter" id="counter"></div>
+    <div class="vid-label" id="vid-label"></div>
+  </div>
+  <div class="ctrl-bar" id="ctrl-bar">
+    <button class="ctrl-btn" id="btn-play">
+      <svg id="icon-play" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      <svg id="icon-pause" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="display:none"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+    </button>
+    <div class="prog-wrap">
+      <div class="prog-bar" id="prog-bar"><div class="prog-fill" id="prog-fill"></div></div>
+      <span class="time-lbl" id="time-lbl">0:00 / 0:00</span>
+    </div>
+    <div class="vol-wrap">
+      <button class="ctrl-btn" id="btn-mute">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+      </button>
+      <input type="range" class="vol" id="vol" min="0" max="1" step="0.05" value="1"/>
+    </div>
+    <button class="ctrl-btn" id="btn-fs">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+    </button>
+    <label class="auto-lbl"><input type="checkbox" id="auto-chk" checked/><span class="tog"></span>Auto</label>
+  </div>
+  <div class="thumbs-row" id="thumbs"></div>
+  <div class="dots" id="dots"></div>
+</div>
+<script>
+const videos=${videosJSON};
+let idx=0, vid=null;
+function fmt(s){if(isNaN(s)||!isFinite(s))return'0:00';const m=Math.floor(s/60),sec=Math.floor(s%60).toString().padStart(2,'0');return m+':'+sec;}
+function updatePlayIcon(){const p=vid&&!vid.paused;document.getElementById('icon-play').style.display=p?'none':'block';document.getElementById('icon-pause').style.display=p?'block':'none';}
+function load(i){
+  idx=i;
+  const v=videos[i];
+  const stage=document.getElementById('stage');
+  if(vid){vid.pause();vid.remove();vid=null;}
+  stage.querySelectorAll('video,iframe').forEach(e=>e.remove());
+  const ctrlBar=document.getElementById('ctrl-bar');
+  if(v.type==='embed'){
+    const fr=document.createElement('iframe');
+    fr.src=v.url;fr.style.cssText='width:100%;height:100%;border:0;';
+    fr.allow='autoplay; fullscreen';fr.allowFullscreen=true;
+    stage.appendChild(fr);
+    document.getElementById('btn-play').style.display='none';
+    document.getElementById('prog-bar').parentElement.style.display='none';
+  } else {
+    document.getElementById('btn-play').style.display='flex';
+    document.getElementById('prog-bar').parentElement.style.display='flex';
+    vid=document.createElement('video');
+    vid.src=v.url;vid.controls=false;vid.playsInline=true;
+    vid.volume=document.getElementById('vol').value;
+    stage.appendChild(vid);
+    vid.addEventListener('timeupdate',()=>{
+      if(!vid.duration)return;
+      document.getElementById('prog-fill').style.width=(vid.currentTime/vid.duration*100)+'%';
+      document.getElementById('time-lbl').textContent=fmt(vid.currentTime)+' / '+fmt(vid.duration);
+    });
+    vid.addEventListener('ended',()=>{if(document.getElementById('auto-chk').checked&&videos.length>1)nav(1);else updatePlayIcon();});
+    vid.addEventListener('play',updatePlayIcon);vid.addEventListener('pause',updatePlayIcon);
+    vid.play().catch(()=>{});
+  }
+  document.getElementById('vid-label').textContent=v.name;
+  document.getElementById('counter').textContent=(i+1)+' / '+videos.length;
+  document.getElementById('btn-prev').style.display=videos.length>1?'flex':'none';
+  document.getElementById('btn-next').style.display=videos.length>1?'flex':'none';
+  renderThumbs();renderDots();
+}
+function nav(d){load((idx+d+videos.length)%videos.length);}
+function renderThumbs(){
+  const row=document.getElementById('thumbs');row.innerHTML='';
+  videos.forEach((v,i)=>{
+    const d=document.createElement('div');
+    d.className='thumb'+(i===idx?' active':'');
+    if(v.type==='embed'){
+      d.innerHTML='<div class="embed-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>';
+    } else {
+      const ve=document.createElement('video');ve.src=v.url;ve.muted=true;ve.currentTime=1;d.appendChild(ve);
+    }
+    const nm=document.createElement('div');nm.className='tname';nm.textContent=v.name;d.appendChild(nm);
+    d.addEventListener('click',()=>load(i));row.appendChild(d);
+  });
+}
+function renderDots(){
+  const el=document.getElementById('dots');el.innerHTML='';
+  videos.forEach((_,i)=>{const d=document.createElement('div');d.className='dot'+(i===idx?' active':'');d.addEventListener('click',()=>load(i));el.appendChild(d);});
+}
+document.getElementById('btn-prev').addEventListener('click',()=>nav(-1));
+document.getElementById('btn-next').addEventListener('click',()=>nav(1));
+document.getElementById('btn-play').addEventListener('click',()=>{if(vid)vid.paused?vid.play():vid.pause();});
+document.getElementById('prog-bar').addEventListener('click',e=>{
+  if(!vid||!vid.duration)return;
+  const r=document.getElementById('prog-bar').getBoundingClientRect();
+  vid.currentTime=((e.clientX-r.left)/r.width)*vid.duration;
+});
+document.getElementById('vol').addEventListener('input',e=>{if(vid)vid.volume=e.target.value;});
+document.getElementById('btn-mute').addEventListener('click',()=>{if(vid){vid.muted=!vid.muted;document.getElementById('btn-mute').classList.toggle('on',vid.muted);}});
+document.getElementById('btn-fs').addEventListener('click',()=>{const s=document.getElementById('stage');document.fullscreenElement?document.exitFullscreen():s.requestFullscreen&&s.requestFullscreen();});
+document.addEventListener('keydown',e=>{
+  if(!vid||document.activeElement.tagName==='INPUT')return;
+  if(e.key===' '||e.key==='k'){e.preventDefault();vid.paused?vid.play():vid.pause();}
+  if(e.key==='ArrowLeft')vid.currentTime=Math.max(0,vid.currentTime-5);
+  if(e.key==='ArrowRight')vid.currentTime=Math.min(vid.duration,vid.currentTime+5);
+});
+load(0);
+<\/script>
+</body>
+</html>`;
+}
+</script>
+</body>
+</html>
